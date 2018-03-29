@@ -14,7 +14,7 @@ def wks_vec(ts, i, eig_vals, phis, sigma, drop_first=True, norm=True):
     Parameters
     ----------
     ts         - array of t values
-    i          - node in graph
+    i          - index of node in graph
     eig_vals   - eigenvalues of Laplacian of the graph
     phis       - eigenvectors of the Laplacian of the graph
     sigma      - smoothness of the wave kernel signature

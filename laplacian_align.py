@@ -2,10 +2,10 @@
 
 import numpy as np
 from scipy.linalg import eigh
-from scipy.spatial.distance import cdist, pdist, squareform
-
-from sklearn.neighbors import kneighbors_graph
 from scipy.sparse.csgraph import laplacian
+from scipy.spatial.distance import pdist, squareform
+from sklearn.neighbors import kneighbors_graph
+
 
 def laplacian_embed(X, k, sigma, d=2, norm=False):
     """ Laplacian eigenmap for one dataset
@@ -16,6 +16,7 @@ def laplacian_embed(X, k, sigma, d=2, norm=False):
     k     - Graph will be of the k nearest neighbours
     sigma - Graph weighted by Gaussian kernel - 0 for unweighted edges
     d     - Embedding dimension
+    norm  - If True, use normalised Laplacian matrix
 
     Returns - Low dimensional embedded coordinates
     """
@@ -32,18 +33,17 @@ def laplacian_embed(X, k, sigma, d=2, norm=False):
     eig_vals, eig_vecs = eigh(L, eigvals=(1, d)) # this gives us 1, 2, ... , d evals
     return eig_vecs
 
-def laplacian_manifold_align(Xs, Us, ks, sigmas, mu, d=2, slices=None):
+def laplacian_manifold_align(Xs, Us, ks, sigmas, mu, d=2):
     """ Manifold alignment using Laplacian Eigenmaps
 
     Parameters
     ----------
     Xs     - List of X: High dimensional dataset, N_X x D_X array
     Us     - List of U: Inter-dataset similarity kernel. N_X x N_Y array
-    ks     - List of k values - graphs are of k nearest neighbours
-    sigmas - List of sigma values - graphs weighted by Gaussian kernel
-    mu     - Matching weighting
+    ks     - Graphs are of k nearest neighbours - int to have constant, list to specify
+    sigmas - Graphs weighted by Gaussian kernel or std dev sigma - float to have constant, list to specify
+    mu     - Weighting of matching matrices compared to intra-dataset weights
     d      - Embedding dimension (default 2)
-    slices - Maximum number of slices to embed. If None, do them all.
 
     Returns
     -------
@@ -51,15 +51,13 @@ def laplacian_manifold_align(Xs, Us, ks, sigmas, mu, d=2, slices=None):
 
     Notes
     -----
-    The graphs are constructed using a Gaussian kernel with variance sigma
-    Notes: Us is a simple list of lists with None on the diagonal such that
+    Us is a simple list of lists with None on the diagonal such that
     U^{1,2} = Us[1][2]
 
+    The U matrices must be symmetric, ie. Us[n][m] = Us[m][n].T for all n != m
+
     """
-    if slices:
-        n_layers = min(len(Xs), slices)
-    else:
-        n_layers = len(Xs)
+    n_layers = len(Xs)
 
     # extract shapes
     Ns, Ds = [], []
